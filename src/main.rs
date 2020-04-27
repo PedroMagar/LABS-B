@@ -4,18 +4,19 @@
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate diesel;
+
+extern crate r2d2;
+extern crate r2d2_diesel;
 
 use rocket_contrib::json::Json;
 use rocket_contrib::json::JsonValue;
 
-
+mod db;
+mod schema;
 mod amostra;
+
 use amostra::{Amostra};
-
-
-
-
-
 
 #[get("/")]
 fn index() -> &'static str {
@@ -93,12 +94,15 @@ fn amostra() -> &'static str {
 
 
 #[get("/", format = "json")]
-fn amostra_ler() -> Json<JsonValue> {
-    Json(json!([
-        "amostra 1", 
-        "amostra 2"
-    ]))
+fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {
+  Json(json!(Amostra::read(&connection)))
 }
+/*fn amostra_ler() -> Json<JsonValue> {
+  Json(json!([
+      "amostra 1", 
+      "amostra 2"
+  ]))
+}*/
 
 fn main() {
     /*let am01 = Amostra {
@@ -115,5 +119,6 @@ fn main() {
     .mount("/hello", routes![hello])
     .mount("/amostra", routes![amostra])
     .mount("/amostra/ler", routes![amostra_ler])
+    .manage(db::connect())
     .launch();
 }
