@@ -1,10 +1,14 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 #![feature(plugin)]
 
-#[macro_use] extern crate rocket;
+use rocket;
 #[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate diesel;
+
+use rocket::http::Method;
+use rocket::{get, routes};
+use rocket_cors;
 
 extern crate r2d2;
 extern crate r2d2_diesel;
@@ -17,6 +21,9 @@ mod schema;
 mod amostra;
 
 use amostra::{Amostra};
+
+use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
+
 
 #[get("/")]
 fn index() -> &'static str {
@@ -97,28 +104,29 @@ fn amostra() -> &'static str {
 fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {
   Json(json!(Amostra::read(&connection)))
 }
-/*fn amostra_ler() -> Json<JsonValue> {
-  Json(json!([
-      "amostra 1", 
-      "amostra 2"
-  ]))
-}*/
 
-fn main() {
-    /*let am01 = Amostra {
-        id: i32 = 1,
-        Nome: String = "TZ Eu Ag",
-        Matriz: String = "TZO",
-        Dopante: String = "Eu Ag",
-        Autor: String = "Augusto",
-        Local: String = "Gaveta"
-    };*/
 
-    rocket::ignite()
+fn main() -> Result<(), Error> {
+  let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
+
+
+  // You can also deserialize this
+  let cors = rocket_cors::CorsOptions {
+      allowed_origins,
+      allowed_methods: vec![Method::Get].into_iter().map(From::from).collect(),
+      allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
+      allow_credentials: true,
+      ..Default::default()
+  }.to_cors()?;
+
+  rocket::ignite()
     .mount("/", routes![index])
     .mount("/hello", routes![hello])
     .mount("/amostra", routes![amostra])
     .mount("/amostra/ler", routes![amostra_ler])
     .manage(db::connect())
+    .attach(cors)
     .launch();
+
+    Ok(())
 }
