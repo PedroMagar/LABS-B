@@ -5,7 +5,7 @@ use diesel::mysql::MysqlConnection;
 use crate::schema::amostras;
 
 //#[table_name = "amostras"]
-#[derive(Serialize, Deserialize, Queryable)]
+#[derive(Serialize, Deserialize, Queryable, Insertable)]
 pub struct Amostra {
     pub id: Option<i32>,
     pub nome: String,
@@ -17,14 +17,14 @@ pub struct Amostra {
 
 
 impl Amostra {
-    /*pub fn create(hero: Hero, connection: &MysqlConnection) -> Hero {
-        diesel::insert_into(heroes::table)
-            .values(&hero)
+    pub fn create(amostra: Amostra, connection: &MysqlConnection) -> Amostra {
+        diesel::insert_into(amostras::table)
+            .values(&amostra)
             .execute(connection)
-            .expect("Error creating new hero");
+            .expect("Error creating new amostra");
 
-        heroes::table.order(heroes::id.desc()).first(connection).unwrap()
-    }*/
+        amostras::table.order(amostras::id.desc()).first(connection).unwrap()
+    }
 
     pub fn read(connection: &MysqlConnection) -> Vec<Amostra> {
         amostras::table.order(amostras::id.asc()).load::<Amostra>(connection).unwrap()
