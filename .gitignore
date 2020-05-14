@@ -1,6 +1,8 @@
 # RUST
 /target
 
+#DB
+/db/*.mwb.bak
 
 # IDEs and editors
 /.idea
