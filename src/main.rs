@@ -7,7 +7,7 @@ use rocket;
 #[macro_use] extern crate diesel;
 
 use rocket::http::Method;
-use rocket::{get, post, routes};
+use rocket::{get, post, put, routes};
 use rocket_cors;
 
 extern crate r2d2;
@@ -48,30 +48,46 @@ fn amostra_add(amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonV
     Json(json!(Amostra::create(insert, &connection)))
 }
 
+#[put("/<id>", data = "<amostra>")]
+fn amostra_update(id: i32, amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {
+    let update = Amostra { id: Some(id), ..amostra.into_inner() };
+    Json(json!({
+        "success": Amostra::update(id, update, &connection)
+    }))
+}
+
 
 fn main() -> Result<(), Error> {
   // let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
   let allowed_origins = AllowedOrigins::all();
 
-
-  // You can also deserialize this
-  let cors = rocket_cors::CorsOptions {
-      allowed_origins,
-      allowed_methods: vec![Method::Get,Method::Post].into_iter().map(From::from).collect(),
+///////////////////////////////////////////////////////////////////////////////
+//                                   CORS                                    //
+//                      You can also deserialize this                        //
+/////////////////////////////////////////////////////////////////////////////// 
+  let cors = rocket_cors::CorsOptions {                                      //
+      allowed_origins,                                                       //
+      allowed_methods: vec![Method::Get,Method::Post,Method::Put].into_iter().map(From::from).collect(),
       // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Access-Control-Allow-Origin"]),
-      allowed_headers: AllowedHeaders::all(),
-      allow_credentials: true,
-      ..Default::default()
-  }.to_cors()?;
+      allowed_headers: AllowedHeaders::all(),                                //
+      allow_credentials: true,                                               //
+      ..Default::default()                                                   //
+  }.to_cors()?;                                                              //
+///////////////////////////////////////////////////////////////////////////////
 
-  rocket::ignite()
-    .mount("/", routes![index])
-    .mount("/hello", routes![hello])
-    .mount("/amostra/ler", routes![amostra_ler])
-    .mount("/amostra/add", routes![amostra_add])
-    .manage(db::connect())
-    .attach(cors)
-    .launch();
+///////////////////////////////////////////////////////////////////////////////
+//                            Launching ROCKET                               //
+///////////////////////////////////////////////////////////////////////////////
+  rocket::ignite()                                                           //
+    .mount("/", routes![index])                                              //
+    .mount("/hello", routes![hello])                                         //
+    .mount("/amostra/read", routes![amostra_ler])                            //
+    .mount("/amostra/add", routes![amostra_add])                             //
+    .mount("/amostra/update", routes![amostra_update])                       //
+    .manage(db::connect())                                                   //
+    .attach(cors)                                                            //
+    .launch();                                                               //
+///////////////////////////////////////////////////////////////////////////////
 
-    Ok(())
+  Ok(())
 }

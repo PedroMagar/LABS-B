@@ -5,7 +5,7 @@ use diesel::mysql::MysqlConnection;
 use crate::schema::amostras;
 
 //#[table_name = "amostras"]
-#[derive(Serialize, Deserialize, Queryable, Insertable)]
+#[derive(Serialize, Deserialize, Queryable, Insertable, AsChangeset)]
 pub struct Amostra {
     pub id: Option<i32>,
     pub nome: String,
@@ -30,9 +30,9 @@ impl Amostra {
         amostras::table.order(amostras::id.asc()).load::<Amostra>(connection).unwrap()
     }
 
-    /*pub fn update(id: i32, hero: Hero, connection: &MysqlConnection) -> bool {
-        diesel::update(heroes::table.find(id)).set(&hero).execute(connection).is_ok()
-    }*/
+    pub fn update(id: i32, amostra: Amostra, connection: &MysqlConnection) -> bool {
+        diesel::update(amostras::table.find(id)).set(&amostra).execute(connection).is_ok()
+    }
 
     /*pub fn delete(id: i32, connection: &MysqlConnection) -> bool {
         diesel::delete(heroes::table.find(id)).execute(connection).is_ok()
