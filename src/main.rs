@@ -7,7 +7,7 @@ use rocket;
 #[macro_use] extern crate diesel;
 
 use rocket::http::Method;
-use rocket::{get, post, put, routes};
+use rocket::{get, post, put, delete, routes};
 use rocket_cors;
 
 extern crate r2d2;
@@ -56,6 +56,12 @@ fn amostra_update(id: i32, amostra: Json<Amostra>, connection: db::Connection) -
     }))
 }
 
+#[delete("/<id>")]
+fn amostra_delete(id: i32, connection: db::Connection) -> Json<JsonValue> {
+  Json(json!({
+      "success": Amostra::delete(id, &connection)
+  }))
+}
 
 fn main() -> Result<(), Error> {
   // let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
@@ -67,7 +73,7 @@ fn main() -> Result<(), Error> {
 /////////////////////////////////////////////////////////////////////////////// 
   let cors = rocket_cors::CorsOptions {                                      //
       allowed_origins,                                                       //
-      allowed_methods: vec![Method::Get,Method::Post,Method::Put].into_iter().map(From::from).collect(),
+      allowed_methods: vec![Method::Get,Method::Post,Method::Put,Method::Delete].into_iter().map(From::from).collect(),
       // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Access-Control-Allow-Origin"]),
       allowed_headers: AllowedHeaders::all(),                                //
       allow_credentials: true,                                               //
@@ -84,6 +90,7 @@ fn main() -> Result<(), Error> {
     .mount("/amostra/read", routes![amostra_ler])                            //
     .mount("/amostra/add", routes![amostra_add])                             //
     .mount("/amostra/update", routes![amostra_update])                       //
+    .mount("/amostra/delete", routes![amostra_delete])                       //
     .manage(db::connect())                                                   //
     .attach(cors)                                                            //
     .launch();                                                               //

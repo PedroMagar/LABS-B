@@ -34,7 +34,7 @@ impl Amostra {
         diesel::update(amostras::table.find(id)).set(&amostra).execute(connection).is_ok()
     }
 
-    /*pub fn delete(id: i32, connection: &MysqlConnection) -> bool {
-        diesel::delete(heroes::table.find(id)).execute(connection).is_ok()
-    }*/
+    pub fn delete(id: i32, connection: &MysqlConnection) -> bool {
+        diesel::delete(amostras::table.find(id)).execute(connection).is_ok()
+    }
 }
