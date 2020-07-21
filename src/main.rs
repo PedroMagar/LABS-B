@@ -27,20 +27,13 @@ use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
 
 #[get("/")]
 fn index() -> &'static str {
-    "LABS, backend!"
+    "LABS Backend"
 }
-
-#[get("/<name>/<age>")]
-fn hello(name: String, age: u8) -> String {
-    format!("Hello, {} year old named {}! Wellcome to LABS Backend!", age, name)
-}
-
 
 #[get("/", format = "json")]
 fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {
   Json(json!(Amostra::read(&connection)))
 }
-
 
 #[post("/", format = "json", data = "<amostra>")]
 fn amostra_add(amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {
@@ -86,7 +79,6 @@ fn main() -> Result<(), Error> {
 ///////////////////////////////////////////////////////////////////////////////
   rocket::ignite()                                                           //
     .mount("/", routes![index])                                              //
-    .mount("/hello", routes![hello])                                         //
     .mount("/amostra/read", routes![amostra_ler])                            //
     .mount("/amostra/add", routes![amostra_add])                             //
     .mount("/amostra/update", routes![amostra_update])                       //
