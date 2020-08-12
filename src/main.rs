@@ -30,31 +30,35 @@ fn index() -> &'static str {
     "LABS Backend"
 }
 
-#[get("/", format = "json")]
-fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {
-  Json(json!(Amostra::read(&connection)))
-}
-
-#[post("/", format = "json", data = "<amostra>")]
-fn amostra_add(amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {
-    let insert = Amostra { id: None, ..amostra.into_inner() };
-    Json(json!(Amostra::create(insert, &connection)))
-}
-
-#[put("/<id>", data = "<amostra>")]
-fn amostra_update(id: i32, amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {
-    let update = Amostra { id: Some(id), ..amostra.into_inner() };
-    Json(json!({
-        "success": Amostra::update(id, update, &connection)
-    }))
-}
-
-#[delete("/<id>")]
-fn amostra_delete(id: i32, connection: db::Connection) -> Json<JsonValue> {
-  Json(json!({
-      "success": Amostra::delete(id, &connection)
-  }))
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                 AMOSTRA                                                 //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {                                            //
+  Json(json!(Amostra::read(&connection)))                                                                  //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[post("/", format = "json", data = "<amostra>")]                                                          //
+fn amostra_add(amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {                    //
+    let insert = Amostra { id: None, ..amostra.into_inner() };                                             //
+    Json(json!(Amostra::create(insert, &connection)))                                                      //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[put("/<id>", data = "<amostra>")]                                                                        //
+fn amostra_update(id: i32, amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {        //
+    let update = Amostra { id: Some(id), ..amostra.into_inner() };                                         //
+    Json(json!({                                                                                           //
+        "success": Amostra::update(id, update, &connection)                                                //
+    }))                                                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[delete("/<id>")]                                                                                         //
+fn amostra_delete(id: i32, connection: db::Connection) -> Json<JsonValue> {                                //
+  Json(json!({                                                                                             //
+      "success": Amostra::delete(id, &connection)                                                          //
+  }))                                                                                                      //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 fn main() -> Result<(), Error> {
   // let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
@@ -62,7 +66,6 @@ fn main() -> Result<(), Error> {
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                   CORS                                    //
-//                      You can also deserialize this                        //
 /////////////////////////////////////////////////////////////////////////////// 
   let cors = rocket_cors::CorsOptions {                                      //
       allowed_origins,                                                       //
