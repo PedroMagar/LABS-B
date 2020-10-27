@@ -7,7 +7,7 @@ table! {
         autor -> Varchar,
         local -> Varchar,
     }
-}/*
+}
 table! {
     logins {
         id -> Nullable<Integer>,
@@ -16,11 +16,12 @@ table! {
     }
 }
 table! {
-    amostras {
+    usuarios {
         id -> Nullable<Integer>,
         usuario -> Varchar,
         senha -> Varchar,
         email -> Varchar,
         telefone -> Varchar,
+        cargo -> Integer,
     }
-}*/
+}

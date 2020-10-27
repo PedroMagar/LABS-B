@@ -1,7 +1,4 @@
 use std::ops::Deref;
-use rocket::http::Status;
-use rocket::request::{self, FromRequest};
-use rocket::{Request, State, Outcome};
 
 use r2d2;
 use r2d2_diesel::ConnectionManager;
@@ -22,6 +19,7 @@ pub struct Connection(pub r2d2::PooledConnection<ConnectionManager<MysqlConnecti
 /// Attempts to retrieve a single connection from the managed database pool. If
 /// no pool is currently managed, fails with an `InternalServerError` status. If
 /// no connections are available, fails with a `ServiceUnavailable` status.
+/*
 impl<'a, 'r> FromRequest<'a, 'r> for Connection {
     type Error = ();
 
@@ -32,7 +30,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Connection {
             Err(_) => Outcome::Failure((Status::ServiceUnavailable, ()))
         }
     }
-}
+}*/
 
 // For the convenience of using an &Connection as an &SqliteConnection.
 impl Deref for Connection {

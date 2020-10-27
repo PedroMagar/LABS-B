@@ -1,133 +1,65 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-#![feature(plugin)]
+use actix_web::{dev::ServiceRequest, web, App, Error, HttpServer};
+use actix_web::{http, HttpRequest, HttpResponse};
+use actix_web::{http::header, middleware::Logger};
+use actix_cors::Cors;
 
-use rocket;
-#[macro_use] extern crate rocket_contrib;
-#[macro_use] extern crate serde_derive;
 #[macro_use] extern crate diesel;
+use diesel::prelude::*;
+use diesel::r2d2::{self, ConnectionManager};
+//extern crate r2d2;
+//extern crate r2d2_diesel;
 
-use rocket::http::Method;
-use rocket::{get, post, put, delete, routes};
-use rocket_cors;
 
-extern crate r2d2;
-extern crate r2d2_diesel;
 
-use rocket_contrib::json::Json;
-use rocket_contrib::json::JsonValue;
-
-mod db;
+// module declaration here
+//mod errors;
+mod handlers;
+//mod models;
 mod schema;
+mod db;
 mod amostra;
-//mod login;
+mod usuario;
 
-use amostra::{Amostra};
-//use login::{Login};
+pub type Pool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
-use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+    std::env::set_var("RUST_LOG", "actix_web=debug");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
+    // create db connection pool
+    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
+    let pool: Pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool.");
 
-#[get("/")]
-fn index() -> &'static str {
-    "LABS Backend"
-}
-/*
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                              AUTENTICAÇÃO                                               //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn auth_signin(connection: db::Connection) -> Json<JsonValue> {                                            //
-  Json(json!(Login::read(&connection)))                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn auth_signup(connection: db::Connection) -> Json<JsonValue> {                                            //
-  Json(json!(Login::read(&connection)))                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn auth_signout(connection: db::Connection) -> Json<JsonValue> {                                           //
-  Json(json!(Login::read(&connection)))                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn auth_requestpass(connection: db::Connection) -> Json<JsonValue> {                                       //
-  Json(json!(Login::read(&connection)))                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn auth_resetpass(connection: db::Connection) -> Json<JsonValue> {                                         //
-  Json(json!(Login::read(&connection)))                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                 AMOSTRA                                                 //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[get("/", format = "json")]                                                                               //
-fn amostra_ler(connection: db::Connection) -> Json<JsonValue> {                                            //
-  Json(json!(Amostra::read(&connection)))                                                                  //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[post("/", format = "json", data = "<amostra>")]                                                          //
-fn amostra_add(amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {                    //
-    let insert = Amostra { id: None, ..amostra.into_inner() };                                             //
-    Json(json!(Amostra::create(insert, &connection)))                                                      //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[put("/<id>", data = "<amostra>")]                                                                        //
-fn amostra_update(id: i32, amostra: Json<Amostra>, connection: db::Connection) -> Json<JsonValue> {        //
-    let update = Amostra { id: Some(id), ..amostra.into_inner() };                                         //
-    Json(json!({                                                                                           //
-        "success": Amostra::update(id, update, &connection)                                                //
-    }))                                                                                                    //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#[delete("/<id>")]                                                                                         //
-fn amostra_delete(id: i32, connection: db::Connection) -> Json<JsonValue> {                                //
-  Json(json!({                                                                                             //
-      "success": Amostra::delete(id, &connection)                                                          //
-  }))                                                                                                      //
-}                                                                                                          //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-fn main() -> Result<(), Error> {
-  // let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
-  let allowed_origins = AllowedOrigins::all();
-
-
-///////////////////////////////////////////////////////////////////////////////
-//                                   CORS                                    //
-/////////////////////////////////////////////////////////////////////////////// 
-  let cors = rocket_cors::CorsOptions {                                      //
-      allowed_origins,                                                       //
-      allowed_methods: vec![Method::Get, Method::Post, Method::Put, Method::Delete].into_iter().map(From::from).collect(),
-      // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Access-Control-Allow-Origin"]),
-      allowed_headers: AllowedHeaders::all(),                                //
-      allow_credentials: true,                                               //
-      ..Default::default()                                                   //
-  }.to_cors()?;                                                              //
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-//                            Launching ROCKET                               //
-///////////////////////////////////////////////////////////////////////////////
-  rocket::ignite()                                                           //
-    .mount("/", routes![index])                                              //
-//    .mount("/auth/sign-in", routes![auth_signin])                            //
-//    .mount("/auth/sign-up", routes![auth_signup])                            //
-//    .mount("/auth/sign-out", routes![auth_signout])                          //
-//    .mount("/auth/request-pass", routes![auth_requestpass])                  //
-//    .mount("/auth/reset-pass", routes![auth_resetpass])                      //
-    .mount("/amostras/read", routes![amostra_ler])                            //
-    .mount("/amostras/add", routes![amostra_add])                             //
-    .mount("/amostras/update", routes![amostra_update])                       //
-    .mount("/amostras/delete", routes![amostra_delete])                       //
-    .manage(db::connect())                                                   //
-    .attach(cors)                                                            //
-    .launch();                                                               //
-///////////////////////////////////////////////////////////////////////////////
-
-  Ok(())
+    // Start http server
+    HttpServer::new(move || {                                                           //
+        App::new()                                                                      //
+            .wrap(                                                                      // Adding CORS policy
+                Cors::default()                                                         //
+                    .allowed_origin("http://localhost:4200")                            //
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])              //
+                    .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])       //
+                    .allowed_header(header::CONTENT_TYPE)                               //
+                    .supports_credentials()                                             //
+                    .max_age(3600),                                                     //
+            )                                                                           //
+            // .wrap(Logger::default())
+            .data(pool.clone())                                                         // Enables the handler functions to interact with the database independently
+            .route("/usuarios/read", web::get().to(handlers::get_users))                // 
+            .route("/usuarios/read/{id}", web::get().to(handlers::get_user))            // 
+            .route("/usuarios/add", web::post().to(handlers::add_user))                 // 
+            .route("/usuarios/update/{id}", web::put().to(handlers::update_user))       // 
+            .route("/usuarios/delete/{id}", web::delete().to(handlers::delete_user))    // 
+            .route("/amostras/read", web::get().to(handlers::get_amostras))             // 
+            .route("/amostras/read/{id}", web::get().to(handlers::get_amostra))         // 
+            .route("/amostras/add", web::post().to(handlers::add_amostra))              // 
+            .route("/amostras/update/{id}", web::put().to(handlers::update_amostra))    // 
+            .route("/amostras/delete/{id}", web::delete().to(handlers::delete_amostra)) // 
+    })
+    .bind("127.0.0.1:8000")?
+    .run()
+    .await
 }
