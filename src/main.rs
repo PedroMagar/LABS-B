@@ -19,8 +19,10 @@ use rocket_contrib::json::JsonValue;
 mod db;
 mod schema;
 mod amostra;
+//mod login;
 
 use amostra::{Amostra};
+//use login::{Login};
 
 use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
 
@@ -29,6 +31,36 @@ use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
 fn index() -> &'static str {
     "LABS Backend"
 }
+/*
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                              AUTENTICAÇÃO                                               //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn auth_signin(connection: db::Connection) -> Json<JsonValue> {                                            //
+  Json(json!(Login::read(&connection)))                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn auth_signup(connection: db::Connection) -> Json<JsonValue> {                                            //
+  Json(json!(Login::read(&connection)))                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn auth_signout(connection: db::Connection) -> Json<JsonValue> {                                           //
+  Json(json!(Login::read(&connection)))                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn auth_requestpass(connection: db::Connection) -> Json<JsonValue> {                                       //
+  Json(json!(Login::read(&connection)))                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#[get("/", format = "json")]                                                                               //
+fn auth_resetpass(connection: db::Connection) -> Json<JsonValue> {                                         //
+  Json(json!(Login::read(&connection)))                                                                    //
+}                                                                                                          //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                 AMOSTRA                                                 //
@@ -64,12 +96,13 @@ fn main() -> Result<(), Error> {
   // let allowed_origins = AllowedOrigins::some_exact(&["http://localhost:4200"]);
   let allowed_origins = AllowedOrigins::all();
 
+
 ///////////////////////////////////////////////////////////////////////////////
 //                                   CORS                                    //
 /////////////////////////////////////////////////////////////////////////////// 
   let cors = rocket_cors::CorsOptions {                                      //
       allowed_origins,                                                       //
-      allowed_methods: vec![Method::Get,Method::Post,Method::Put,Method::Delete].into_iter().map(From::from).collect(),
+      allowed_methods: vec![Method::Get, Method::Post, Method::Put, Method::Delete].into_iter().map(From::from).collect(),
       // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Access-Control-Allow-Origin"]),
       allowed_headers: AllowedHeaders::all(),                                //
       allow_credentials: true,                                               //
@@ -82,10 +115,15 @@ fn main() -> Result<(), Error> {
 ///////////////////////////////////////////////////////////////////////////////
   rocket::ignite()                                                           //
     .mount("/", routes![index])                                              //
-    .mount("/amostra/read", routes![amostra_ler])                            //
-    .mount("/amostra/add", routes![amostra_add])                             //
-    .mount("/amostra/update", routes![amostra_update])                       //
-    .mount("/amostra/delete", routes![amostra_delete])                       //
+//    .mount("/auth/sign-in", routes![auth_signin])                            //
+//    .mount("/auth/sign-up", routes![auth_signup])                            //
+//    .mount("/auth/sign-out", routes![auth_signout])                          //
+//    .mount("/auth/request-pass", routes![auth_requestpass])                  //
+//    .mount("/auth/reset-pass", routes![auth_resetpass])                      //
+    .mount("/amostras/read", routes![amostra_ler])                            //
+    .mount("/amostras/add", routes![amostra_add])                             //
+    .mount("/amostras/update", routes![amostra_update])                       //
+    .mount("/amostras/delete", routes![amostra_delete])                       //
     .manage(db::connect())                                                   //
     .attach(cors)                                                            //
     .launch();                                                               //
