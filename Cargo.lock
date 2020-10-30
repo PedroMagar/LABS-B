@@ -1411,7 +1411,7 @@ dependencies = [
 
 [[package]]
 name = "labs_b"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "actix-cors",
  "actix-rt",

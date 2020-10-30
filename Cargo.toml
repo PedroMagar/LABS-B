@@ -1,6 +1,6 @@
 [package]
 name = "labs_b"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Pedro Henrique Martins Garcia <pedro.phmg@gmail.com>"]
 edition = "2018"
 
