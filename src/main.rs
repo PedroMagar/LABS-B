@@ -6,13 +6,9 @@ use actix_cors::Cors;
 #[macro_use] extern crate diesel;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
-//extern crate r2d2;
-//extern crate r2d2_diesel;
-
-
 
 // module declaration here
-//mod errors;
+mod errors;
 mod handlers;
 //mod models;
 mod schema;
@@ -26,15 +22,13 @@ pub type Pool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     std::env::set_var("RUST_LOG", "actix_web=debug");
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    
+    ///////////////////////////////////// Database ///////////////////////////////////////
+    let pool: Pool = db::connect();                                                     // DB Connection
+    //////////////////////////////////////////////////////////////////////////////////////
+    
 
-    // create db connection pool
-    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
-    let pool: Pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-
-    // Start http server
+    ///////////////////////////////// Start http server //////////////////////////////////
     HttpServer::new(move || {                                                           //
         App::new()                                                                      //
             .wrap(                                                                      // Adding CORS policy

@@ -1,19 +1,8 @@
-//use actix_web::Responder;
 use actix_web::{web, Error, HttpResponse};
 
 use super::amostra;
 use super::usuario;
-//use super::schema::usuarios::dsl::*;
-//use super::schema::amostras::dsl::*;
-//use super::models::{NewUser, User};
-//use super::schema::users::dsl::*;
 use super::Pool;
-use crate::diesel::QueryDsl;
-use crate::diesel::RunQueryDsl;
-
-use diesel::dsl::{delete, insert_into};
-use serde::{Deserialize, Serialize};
-use std::vec::Vec;
 
 use amostra::{Amostra};
 use usuario::{Usuario};
@@ -21,26 +10,6 @@ use usuario::{Usuario};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                              AUTENTICAÇÃO                                               //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*pub async fn get_users() -> impl Responder {
-    format!("hello from get users")
-}
-
-pub async fn get_user() -> impl Responder {
-    format!("hello from get users by id")
-}
-
-pub async fn add_user() -> impl Responder {
-    format!("hello from add user")
-}
-
-pub async fn update_user() -> impl Responder {
-    format!("hello from update user")
-}
-
-pub async fn delete_user() -> impl Responder {
-    format!("hello from delete user")
-}*/
-
 pub async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
     Ok(web::block(move || Usuario::read_all(db))
         .await
